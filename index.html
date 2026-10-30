@@ -2,11 +2,18 @@
 <html lang="tr">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>AUREL Saat</title>
 <meta name="description" content="AUREL otomatik saat mağazası: pilsiz, bileğinizin hareketiyle çalışan otomatik saatler.">
+<meta name="theme-color" content="#0b0b0b">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AUREL Saat">
+<meta property="og:description" content="Pilsiz, bileğinizin hareketiyle çalışan otomatik saatler.">
+<meta property="og:image" content="assets/watch-base.webp">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230b0b0b' stroke='%23c9a45c' stroke-width='2'/%3E%3Cpath d='M16 7v9l6 4' stroke='%23c9a45c' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preload" as="image" href="assets/watch-base.webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap"></noscript>
 <style>
 /* Layout: one tall sticky scene (watch zooms into the dial, dial dissolves into the movement, parts tour), then static product rows, stats, contact. Single deliberate dark look. */
 :root {
@@ -70,7 +77,7 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
 @media (max-width: 720px) { .nav-links { display: none; } .logo { font-size: 22px; } }
 
 /* DIVE: hero + movement in one sticky scene */
-.dive { position: relative; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); height: 1000vh; background: linear-gradient(var(--black) 0%, var(--black) 40%, var(--ink) 55%, var(--ink) 94%, var(--black) 100%); }
+.dive { position: relative; margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); height: 500vh; background: linear-gradient(var(--black) 0%, var(--black) 40%, var(--ink) 55%, var(--ink) 94%, var(--black) 100%); }
 .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
 .glow {
   position: absolute; inset: 0;
@@ -309,7 +316,7 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
 </main>
 
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Sepet" inert>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Sepet" inert>
   <div class="drawer-head"><h3>Sepetiniz</h3><button class="x" id="closeCart" aria-label="Sepeti kapat">×</button></div>
   <div class="drawer-body" id="cartBody"></div>
   <div class="drawer-foot" id="cartFoot">
@@ -321,7 +328,7 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
     <a class="btn solid" id="orderBtn" href="#" target="_blank" rel="noopener">Siparişi WhatsApp ile gönder</a>
     <p class="note">Kartla online ödeme çok yakında. Şimdilik siparişiniz WhatsApp üzerinden onaylanır.</p>
   </div>
-</aside>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -336,13 +343,13 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
 
 const PRODUCTS = [
-  { id: 'meridian', img: 'pblack', w: 1024, h: 1536, name: 'Meridian', tag: 'Açık kalpli otomatik', price: 18900,
+  { id: 'meridian', img: 'pblack', w: 900, h: 1350, name: 'Meridian', tag: 'Açık kalpli otomatik', price: 18900,
     text: 'Gümüş tırtıllı bezel, siyah kadran ve kadranın altından görünen mekanizma. Jubile bileklikle gün boyu rahat.',
     specs: [['Kasa', '41 mm, 316L çelik'], ['Cam', 'Safir kristal'], ['Su geçirmezlik', '5 ATM'], ['Bileklik', 'Jubile çelik']] },
-  { id: 'verde', img: 'pgreen', w: 1022, h: 1539, name: 'Verde Gün-Tarih', tag: 'Günlük otomatik', price: 14500,
+  { id: 'verde', img: 'pgreen', w: 900, h: 1355, name: 'Verde Gün-Tarih', tag: 'Günlük otomatik', price: 14500,
     text: 'Yeşil güneş ışını kadran, altın kaplama indeksler ve gün-tarih penceresi. Kahverengi deri kayışla gündelik şıklık.',
     specs: [['Kasa', '40 mm, fırçalı çelik'], ['Gösterge', 'Gün ve tarih'], ['Su geçirmezlik', '5 ATM'], ['Kayış', 'Kahverengi deri']] },
-  { id: 'heritage', img: 'pverde', w: 989, h: 1591, name: 'Heritage Zümrüt', tag: 'Dokulu kadran', price: 21900,
+  { id: 'heritage', img: 'pverde', w: 900, h: 1448, name: 'Heritage Zümrüt', tag: 'Dokulu kadran', price: 21900,
     text: 'Zümrüt yeşili dokulu kadran ve altın hançer indeksler. Kadran üzerinde yazan Japonya yapımı otomatik mekanizmayla çalışır.',
     specs: [['Kasa', '39 mm, çelik'], ['Mekanizma', 'Japonya yapımı otomatik'], ['Su geçirmezlik', '5 ATM'], ['Kayış', 'Kahverengi deri']] }
 ];
@@ -405,8 +412,9 @@ const g1 = document.querySelector('.g1'), g2 = document.querySelector('.g2'), g3
 /* ---------- kaydırma sahnesi ---------- */
 const dive = $('dive'), watch = $('watch'), porthole = $('porthole'), mechLayer = $('mechLayer');
 const heroCopy = $('heroCopy'), mechCopy = $('mechCopy'), cue = $('cue');
-let L = {}, z = { s: 1, x: 0, y: 0 }, lastActive = -2;
+let L = {}, z = { s: 1, x: 0, y: 0 }, lastActive = -2, lastInv = '', diveTop = 0, diveH = 1;
 function layout() {
+  const dr = dive.getBoundingClientRect(); diveTop = dr.top + scrollY; diveH = dr.height;
   const vw = innerWidth, vh = innerHeight, mobile = vw <= 860;
   const dx = mobile ? vw / 2 : vw * 0.66, dy = mobile ? vh * 0.68 : vh * 0.5;
   const D = mobile ? Math.min(vw * 0.84, vh * 0.42) : Math.min(vh * 0.76, vw * 0.44);
@@ -417,7 +425,9 @@ function layout() {
   L = { vw, vh, mobile, D, sD: D / (0.40 * Hh) * 1.04 };
 }
 layout(); addEventListener('resize', layout);
-const progress = el => { const r = el.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight)); };
+/* konum/yükseklik layout()'ta önbelleğe alınır: her karede zorunlu reflow yok */
+const progress = () => clamp((scrollY - diveTop) / Math.max(1, diveH - innerHeight));
+addEventListener('load', () => { layout(); kick(); });
 
 function frame() {
   const p = progress(dive);
@@ -456,7 +466,7 @@ function frame() {
   z.s += (targetS - z.s) * f; z.x += (tX - z.x) * f; z.y += (tY - z.y) * f;
   zoomer.style.transform = `translate(${z.x}px, ${z.y}px) scale(${z.s})`;
   const inv = (1 / z.s).toFixed(3);
-  pins.forEach(pn => pn.style.setProperty('--inv', inv));
+  if (inv !== lastInv) { lastInv = inv; pins.forEach(pn => pn.style.setProperty('--inv', inv)); }
   if (idx !== lastActive) {
     lastActive = idx;
     partLis.forEach((li, i) => li.classList.toggle('on', i === idx));
