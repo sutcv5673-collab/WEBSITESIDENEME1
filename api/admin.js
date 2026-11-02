@@ -15,6 +15,7 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       const r = await sb('?select=*&order=date.asc,time.asc&date=gte.' + new Date(Date.now() - 864e5).toISOString().slice(0, 10));
+      if (!r.ok) return res.status(502).json({ error: 'Veritabanı bağlantısı başarısız (SUPABASE_SERVICE_KEY kontrol edin)' });
       return res.json(await r.json());
     }
     if (req.method === 'PATCH') {

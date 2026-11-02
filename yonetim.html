@@ -30,6 +30,7 @@ let pw=ss.get()||'',data=[],flt='aktif';
 const ST={beklemede:'Bekliyor',onaylandi:'Onaylandı',iptal:'İptal'};
 async function load(){
   let r;try{r=await fetch('/api/admin',{headers:{'x-admin-password':pw}})}catch(x){$('e').textContent='Bağlantı hatası';return}
+  if(r.status>=500){const j=await r.json().catch(()=>({}));$('e').textContent=j.error||'Sunucu hatası';return}
   if(!r.ok){ss.del();pw='';$('f').hidden=false;$('app').hidden=true;$('out').hidden=true;$('e').textContent='Şifre hatalı.';return}
   data=await r.json();ss.set(pw);
   $('f').hidden=true;$('app').hidden=false;$('out').hidden=false;render();
