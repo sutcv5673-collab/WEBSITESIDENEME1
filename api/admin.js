@@ -5,9 +5,10 @@ const same = (a, b) => {
   const y = crypto.createHash('sha256').update(String(b || '')).digest();
   return crypto.timingSafeEqual(x, y);
 };
+const dec = s => { try { return decodeURIComponent(s || ''); } catch (e) { return s || ''; } };
 module.exports = async (req, res) => {
   const pw = process.env.ADMIN_PASSWORD;
-  if (!pw || !same(req.headers['x-admin-password'], pw)) {
+  if (!pw || !same(dec(req.headers['x-admin-password']), pw)) {
     await new Promise(r => setTimeout(r, 800)); // kaba kuvveti yavaslat
     return res.status(401).json({ error: 'Yetkisiz' });
   }

@@ -29,7 +29,7 @@ const ss={get:()=>{try{return sessionStorage.getItem('apw')}catch(e){return null
 let pw=ss.get()||'',data=[],flt='aktif';
 const ST={beklemede:'Bekliyor',onaylandi:'Onaylandı',iptal:'İptal'};
 async function load(){
-  let r;try{r=await fetch('/api/admin',{headers:{'x-admin-password':pw}})}catch(x){$('e').textContent='Bağlantı hatası';return}
+  let r;try{r=await fetch('/api/admin',{headers:{'x-admin-password':encodeURIComponent(pw)}})}catch(x){$('e').textContent='Bağlantı hatası';return}
   if(r.status>=500){const j=await r.json().catch(()=>({}));$('e').textContent=j.error||'Sunucu hatası';return}
   if(!r.ok){ss.del();pw='';$('f').hidden=false;$('app').hidden=true;$('out').hidden=true;$('e').textContent='Şifre hatalı.';return}
   data=await r.json();ss.set(pw);
@@ -54,7 +54,7 @@ $('ref').onclick=load;
 $('flt').onclick=e=>{const b=e.target.closest('[data-f]');if(b){flt=b.dataset.f;render()}};
 $('list').onclick=async e=>{const b=e.target.closest('button[data-i]');if(!b)return;
   if(b.dataset.s==='iptal'&&!confirm('Randevu iptal edilsin mi?'))return;
-  await fetch('/api/admin',{method:'PATCH',headers:{'x-admin-password':pw,'Content-Type':'application/json'},body:JSON.stringify({id:b.dataset.i,status:b.dataset.s})});load()};
+  await fetch('/api/admin',{method:'PATCH',headers:{'x-admin-password':encodeURIComponent(pw),'Content-Type':'application/json'},body:JSON.stringify({id:b.dataset.i,status:b.dataset.s})});load()};
 if(pw)load();
 </script>
 </html>
