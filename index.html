@@ -177,6 +177,20 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
   .stat + .stat { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
 }
 
+/* RANDEVU */
+.appt { padding-block: 100px 20px; }
+.appt form { display: grid; gap: 18px; max-width: 640px; margin-top: 40px; }
+.appt label, .appt legend { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 8px; padding: 0; }
+.appt fieldset { border: 0; padding: 0; margin: 0; }
+.appt input, .appt select, .appt textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; background: transparent; color: var(--text); border: 1px solid var(--line); font: inherit; }
+.appt .seg, .appt .slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.appt .seg label, .appt .slots label { margin: 0; }
+.appt .seg input, .appt .slots input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.appt .seg span, .appt .slots span { display: inline-block; padding: 10px 18px; border: 1px solid var(--line); color: var(--text); letter-spacing: 0.04em; text-transform: none; font-size: 14px; cursor: pointer; }
+.appt input:checked + span { background: var(--gold); color: var(--black); border-color: var(--gold); }
+.appt input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+.appt .msg { min-height: 1.4em; margin: 0; color: var(--gold-soft); }
+.appt .msg.bad { color: #e08a7a; }
 /* CONTACT */
 .contact { margin-inline: calc(-1 * var(--gl)) calc(-1 * var(--gr)); padding-inline: var(--gl) var(--gr); padding-block: 100px 40px; border-top: 1px solid var(--line); background: var(--ink); }
 .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 36px; margin-top: 50px; }
@@ -236,6 +250,7 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
     <a href="#mekanizma">Mekanizma</a>
     <a href="#koleksiyon">Koleksiyon</a>
     <a href="#hikaye">Otomatik saat</a>
+    <a href="#randevu">Randevu</a>
     <a href="#iletisim">İletişim</a>
   </nav>
   <button class="cart-btn" id="openCart" aria-haspopup="dialog">Sepet <span class="cart-count" id="cartCount" aria-live="polite">0</span><span class="sr-only">ürün</span></button>
@@ -300,6 +315,27 @@ em { color: var(--gold); font-style: italic; font-weight: 400; }
         <div class="stat reveal"><b>0</b><span>Pil değişimi</span></div>
         <div class="stat reveal"><b>41 sa</b><span>Güç rezervi</span></div>
       </div>
+    </div>
+  </section>
+
+  <section class="appt" id="randevu">
+    <div class="wrap">
+      <span class="eyebrow">Randevu</span>
+      <h2 style="margin-top:14px">Size özel bir saat ayıralım</h2>
+      <form id="apptForm" novalidate>
+        <fieldset><legend>Randevu türü</legend><div class="seg">
+          <label><input type="radio" name="kind" value="ziyaret" checked><span>Mağaza ziyareti</span></label>
+          <label><input type="radio" name="kind" value="servis"><span>Servis / bakım</span></label></div></fieldset>
+        <div id="svcWrap" hidden><label for="aSvc">Hizmet</label><select id="aSvc"><option>Pil değişimi</option><option>Kayış değişimi</option><option>Genel bakım</option></select></div>
+        <div><label for="aDate">Tarih</label><input id="aDate" type="date" required></div>
+        <fieldset><legend>Saat</legend><div class="slots" id="aSlots">Önce tarih seçin</div></fieldset>
+        <div><label for="aName">Ad soyad</label><input id="aName" autocomplete="name" required></div>
+        <div><label for="aPhone">Telefon</label><input id="aPhone" type="tel" autocomplete="tel" required></div>
+        <div><label for="aMail">E-posta (isteğe bağlı)</label><input id="aMail" type="email" autocomplete="email"></div>
+        <div><label for="aNote">Not (isteğe bağlı)</label><textarea id="aNote" rows="2" maxlength="500"></textarea></div>
+        <p class="msg" id="aMsg" role="status"></p>
+        <button class="btn solid" id="aBtn" type="submit">Randevu talep et</button>
+      </form>
     </div>
   </section>
 
@@ -576,4 +612,39 @@ document.querySelector('a[href="#mekanizma"]').addEventListener('click', e => {
   const r = dive.getBoundingClientRect(), top = r.top + scrollY;
   scrollTo({ top: top + (r.height - innerHeight) * 0.5, behavior: reduce ? 'auto' : 'smooth' });
 });
+</script>
+<script>
+(() => {
+  const f = document.getElementById('apptForm'), d = document.getElementById('aDate'), box = document.getElementById('aSlots'), msg = document.getElementById('aMsg');
+  const say = (t, bad) => { msg.textContent = t; msg.classList.toggle('bad', !!bad); };
+  const iso = x => new Date(x.getTime() - x.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  d.min = iso(new Date());
+  f.querySelectorAll('[name=kind]').forEach(r => r.addEventListener('change', () => { document.getElementById('svcWrap').hidden = f.kind.value !== 'servis'; }));
+  async function loadSlots() {
+    if (!d.value) return;
+    box.textContent = 'Yükleniyor…';
+    try {
+      const r = await fetch('/api/slots?date=' + d.value), j = await r.json();
+      if (!r.ok) throw 0;
+      box.innerHTML = j.slots.length ? j.slots.map(t => `<label><input type="radio" name="time" value="${t}"><span>${t}</span></label>`).join('') : 'Bu tarihte boş saat yok.';
+    } catch (e) { box.textContent = 'Saatler yüklenemedi.'; }
+  }
+  d.addEventListener('change', loadSlots);
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); say('');
+    const time = f.querySelector('[name=time]:checked');
+    if (!d.value || !time) return say('Lütfen tarih ve saat seçin.', true);
+    const btn = document.getElementById('aBtn'); btn.disabled = true;
+    try {
+      const r = await fetch('/api/book', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        kind: f.kind.value, service: document.getElementById('aSvc').value, date: d.value, time: time.value,
+        name: document.getElementById('aName').value, phone: document.getElementById('aPhone').value,
+        email: document.getElementById('aMail').value, note: document.getElementById('aNote').value }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { say(j.error || 'Bir hata oluştu.', true); if (r.status === 409) loadSlots(); }
+      else { say('Talebiniz alındı. Onay için sizinle iletişime geçeceğiz.'); f.reset(); box.textContent = 'Önce tarih seçin'; }
+    } catch (err) { say('Bağlantı hatası, lütfen tekrar deneyin.', true); }
+    btn.disabled = false;
+  });
+})();
 </script>

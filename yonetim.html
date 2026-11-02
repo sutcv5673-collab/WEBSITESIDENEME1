@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>AUREL Yönetim</title>
+<style>
+body{margin:0;background:#0c0c0c;color:#e8e4da;font:15px/1.5 system-ui,sans-serif;padding:24px;max-width:960px;margin-inline:auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-weight:400;letter-spacing:.2em;color:#c9a96a;font-size:18px}
+input,button{font:inherit;padding:8px 14px;background:#161616;color:inherit;border:1px solid #333}
+button{cursor:pointer}button:hover,button.on{border-color:#c9a96a;color:#c9a96a}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.day{margin:22px 0 4px;color:#c9a96a;letter-spacing:.14em;font-size:13px;text-transform:uppercase}
+.row{display:grid;grid-template-columns:60px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid #222;align-items:center}
+.m{color:#8a8578;font-size:13px}.s-iptal{opacity:.45}.st{color:#c9a96a;font-size:13px}.s-onaylandi .st{color:#7fbf7f}
+a{color:#c9a96a}.err{color:#e08a7a}
+@media(max-width:600px){.row{grid-template-columns:50px 1fr}.row>div:last-child{grid-column:1/-1}}
+</style>
+<header><h1>AUREL · RANDEVULAR</h1><button id="out" hidden>Çıkış</button></header>
+<form id="f"><input id="pw" type="password" placeholder="Şifre" autocomplete="current-password" required> <button>Giriş</button> <span class="err" id="e"></span></form>
+<div id="app" hidden>
+  <div class="bar" id="flt">
+    <button data-f="aktif" class="on">Aktif</button><button data-f="beklemede">Bekleyen</button><button data-f="onaylandi">Onaylı</button><button data-f="iptal">İptal</button><button data-f="hepsi">Hepsi</button>
+    <button id="ref">Yenile</button>
+  </div>
+  <div id="list"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ss={get:()=>{try{return sessionStorage.getItem('apw')}catch(e){return null}},set:v=>{try{sessionStorage.setItem('apw',v)}catch(e){}},del:()=>{try{sessionStorage.removeItem('apw')}catch(e){}}};
+let pw=ss.get()||'',data=[],flt='aktif';
+const ST={beklemede:'Bekliyor',onaylandi:'Onaylandı',iptal:'İptal'};
+async function load(){
+  let r;try{r=await fetch('/api/admin',{headers:{'x-admin-password':pw}})}catch(x){$('e').textContent='Bağlantı hatası';return}
+  if(!r.ok){ss.del();pw='';$('f').hidden=false;$('app').hidden=true;$('out').hidden=true;$('e').textContent='Şifre hatalı.';return}
+  data=await r.json();ss.set(pw);
+  $('f').hidden=true;$('app').hidden=false;$('out').hidden=false;render();
+}
+function render(){
+  const rows=data.filter(a=>flt==='hepsi'||(flt==='aktif'?a.status!=='iptal':a.status===flt));
+  let day='',out='';
+  for(const a of rows){
+    if(a.date!==day){day=a.date;out+=`<div class="day">${h(new Date(a.date+'T00:00').toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'}))}</div>`}
+    out+=`<div class="row s-${h(a.status)}"><b>${h(a.time.slice(0,5))}</b>
+    <div>${h(a.name)} · <a href="tel:${h(a.phone)}">${h(a.phone)}</a>${a.email?` · <a href="mailto:${h(a.email)}">${h(a.email)}</a>`:''}<br>
+    <span class="m">${a.kind==='ziyaret'?'Mağaza ziyareti':'Servis: '+h(a.service)}${a.note?' — '+h(a.note):''}</span> <span class="st">${ST[a.status]||h(a.status)}</span></div>
+    <div><button data-i="${h(a.id)}" data-s="onaylandi">Onayla</button> <button data-i="${h(a.id)}" data-s="iptal">İptal</button></div></div>`;
+  }
+  $('list').innerHTML=out||'<p class="m">Randevu yok.</p>';
+  document.querySelectorAll('#flt [data-f]').forEach(b=>b.classList.toggle('on',b.dataset.f===flt));
+}
+$('f').onsubmit=e=>{e.preventDefault();$('e').textContent='';pw=$('pw').value;load()};
+$('out').onclick=()=>{ss.del();location.reload()};
+$('ref').onclick=load;
+$('flt').onclick=e=>{const b=e.target.closest('[data-f]');if(b){flt=b.dataset.f;render()}};
+$('list').onclick=async e=>{const b=e.target.closest('button[data-i]');if(!b)return;
+  if(b.dataset.s==='iptal'&&!confirm('Randevu iptal edilsin mi?'))return;
+  await fetch('/api/admin',{method:'PATCH',headers:{'x-admin-password':pw,'Content-Type':'application/json'},body:JSON.stringify({id:b.dataset.i,status:b.dataset.s})});load()};
+if(pw)load();
+</script>
+</html>

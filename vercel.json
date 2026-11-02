@@ -1,5 +1,7 @@
 {
+  "rewrites": [{ "source": "/yonetim", "destination": "/yonetim.html" }],
   "headers": [
+    { "source": "/(yonetim|yonetim.html)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "no-store" }] },
     {
       "source": "/(.*)",
       "headers": [
