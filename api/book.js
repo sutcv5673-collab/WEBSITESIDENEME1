@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
     if (!r.ok) throw new Error('db');
     const what = kind === 'ziyaret' ? 'Mağaza ziyareti' : 'Servis: ' + service;
     await Promise.all([
-      mail(process.env.ADMIN_EMAIL, `Yeni randevu: ${date} ${time}`, `<p><b>${esc(what)}</b><br>${esc(date)} ${esc(time)}<br>${esc(name)} · ${esc(phone)} ${esc(email)}<br>${esc(note)}</p>`),
+      mail(process.env.ADMIN_EMAIL, `Yeni randevu: ${date} ${time}`, `<p><b>${esc(what)}</b><br>${esc(date)} ${esc(time)}<br>${esc(name)} · ${esc(phone)} ${esc(email)}<br>${esc(note)}</p><p><a href="https://${esc(req.headers.host)}/yonetim">Yönetim paneli</a></p>`, email),
       mail(email, 'AUREL randevu talebiniz alındı', `<p>Merhaba ${esc(name)},</p><p>${esc(what)} randevu talebiniz <b>${esc(date)} ${esc(time)}</b> için alındı. Onay için sizinle iletişime geçeceğiz.</p><p>AUREL Otomatik Saat</p>`)
     ]);
     res.json({ ok: true });

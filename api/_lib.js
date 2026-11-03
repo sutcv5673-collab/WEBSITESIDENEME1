@@ -1,3 +1,4 @@
+const nodemailer = require('nodemailer');
 const SB = () => process.env.SUPABASE_URL + '/rest/v1/appointments';
 const H = () => ({ apikey: process.env.SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + process.env.SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' });
 
@@ -15,15 +16,19 @@ async function takenSlots(date) {
   return (await r.json()).map(x => x.time.slice(0, 5));
 }
 
-async function mail(to, subject, html) {
-  if (!process.env.RESEND_API_KEY || !to) return;
+let tx;
+const transport = () => tx || (tx = nodemailer.createTransport({
+  host: 'smtp.gmail.com', port: 465, secure: true,
+  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
+}));
+
+// basarili gonderimde true doner
+async function mail(to, subject, html, replyTo) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !to) return false;
   try {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: process.env.MAIL_FROM || 'AUREL <onboarding@resend.dev>', to, subject, html })
-    });
-  } catch (e) { /* e-posta hatasi randevuyu engellemez */ }
+    await transport().sendMail({ from: `"AUREL Otomatik Saat" <${process.env.GMAIL_USER}>`, to, subject, html, replyTo: replyTo || undefined });
+    return true;
+  } catch (e) { return false; /* e-posta hatasi randevuyu engellemez */ }
 }
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
